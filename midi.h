@@ -1,7 +1,8 @@
 #include <vector>
 #include "stdio.h"
 #include "string.h"
-
+#include <stdlib.h>   
+#include <arpa/inet.h>
 typedef unsigned char uchar;
 typedef unsigned short ushort;
 typedef unsigned long ulong;
@@ -14,12 +15,14 @@ public:
 
 	std::vector<uchar> _data;
 	const char *_fileName;
-	int track;
-	int time;
+	int _track;
+	int _time;
 	void setFileName(const char *fileName);
 	FILE *openFile(const char *fileName);
 	int read(const char *fileName);
+	ulong getNext(FILE *f);
 	char getNextChar(FILE *f);
+	ushort getNextShort(FILE *f);
 	int isNoteOn(int track, int i);
 	int isNoteOff(int track, int i);
 	int isMeta(int track, int i);
