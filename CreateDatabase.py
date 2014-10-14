@@ -14,6 +14,7 @@ c.execute('''CREATE TABLE midi
 	      artist TEXT NOT NULL,
 	      song TEXT NOT NULL,
 	      contourMap TEXT NOT NULL,
+	      noteMap TEXT NOT NULL,
 	      PRIMARY KEY(fileName))''')
 
 # Save the changes
