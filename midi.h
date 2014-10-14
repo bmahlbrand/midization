@@ -8,7 +8,7 @@ typedef unsigned long ulong;
 
 class MidiFile {
 public:
-	MidiFile(void);
+	MidiFile();
 	MidiFile(const char *fileName);
 	~MidiFile();
 
@@ -17,8 +17,9 @@ public:
 	int track;
 	int time;
 	void setFileName(const char *fileName);
-	int openFile(FILE &file);
+	FILE *openFile(const char *fileName);
 	int read(const char *fileName);
+	char getNextChar(FILE *f);
 	int isNoteOn(int track, int i);
 	int isNoteOff(int track, int i);
 	int isMeta(int track, int i);
