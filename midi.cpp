@@ -120,7 +120,7 @@ MidiFile::read(const char *fileName) {
 	memset(buffer, '\0', 4);
 	for (int i = 0; i < 2; i++) {
 		buffer[i] = getNextChar(midi);
-		fprintf(stderr, "bpm%x\n", buffer[i]);
+		fprintf(stderr, "bpm %x\n", buffer[i]);
 	}
 	
 	if (buffer[0] == 0)
@@ -201,19 +201,6 @@ MidiFile::printContour() {
    		fprintf(stderr, "%c", *i);
    	fprintf(stderr, "%c\n", '\n');
 }
-// readEvent(FILE *f) {
-// 	char c = getNextChar(f);
-// 	uchar evtType = c & 0x0F;
-
-// 	// switch(evtType) {
-// 	// 	case 0x09:
-
-// 	// 		break;
-// 	// 	case 0x08:
-
-// 	// 		break;
-// 	// }
-// }
 
 ushort
 MidiFile::getNextShort(FILE *f) {
