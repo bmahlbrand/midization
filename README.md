@@ -9,4 +9,5 @@ parser to produce melodic contour strings of files
 -add melodic subsequence detection  
 -add string approximations  
 -add note data  
+-separate read into buildContour and buildNoteData  
 -Python hooks to get melodic contour map from file...just call C from Python for web UI  
