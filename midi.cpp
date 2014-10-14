@@ -3,14 +3,15 @@
 
 MidiFile::MidiFile() {
 	_fileName = NULL;
-	_time = 0;
-	_track = 0;
+	_trkSz = 0;
+	_bpm = 0;
+	
 }
 
 MidiFile::MidiFile(const char *fileName) {
 	_fileName = NULL;
-	_time = 0;
-	_track = 0;
+	_trkSz = 0;
+	_bpm = 0;
 }
 
 MidiFile::~MidiFile() {
@@ -36,6 +37,7 @@ MidiFile::read(const char *fileName) {
 	if (fileName != NULL)
 		setFileName(fileName);
 	FILE *midi = openFile(fileName);
+	
 	if (!midi)
 		return 0;
 
@@ -87,53 +89,98 @@ MidiFile::read(const char *fileName) {
 		fprintf(stderr, "bpm%x\n", buffer[i]);
 	}
 	
+	if (buffer[0] == 0)
+		_bpm = buffer[1];
+	fprintf(stderr, "%i\n", _bpm);
 	uchar trkHdr[4];
 
 	for (int i = 0; i < 4; i++) {
 		trkHdr[i] = getNextChar(midi);
-		fprintf(stderr, "%c\n", trkHdr[i]);
 	}
 
 	fprintf(stderr, "%s\n", trkHdr);
 
 	char trkSz[4];
-
+	ulong size = 0;
 	for (int i = 0; i < 4; i++) {
 		trkSz[i] = getNextChar(midi);
 		fprintf(stderr, "%x\n", trkSz[i]);
+		size += trkSz[i];
 	}
 
+	size = (trkSz[0] << 24) | (trkSz[1] << 16) | (trkSz[2] << 8) | trkSz[3]; //from char hex array to ulong
+	fprintf(stderr, "%lu\n", size);
 	// fprintf(stderr, "%ld\n", atol((char*)trkSz));
 	char c = 0;
 	short prevNote = 0;
-	char contour[9553];
-	memset(contour, '\0', 9553);
+
 	int count = 0;
 	// while ((c = getNextChar(midi)) != EOF) {
-	for (int i = 0; i < 9553; i++) {
+	for (int i = 0; i < size; i++) {
 		c = getNextChar(midi);
 		if ((c & 0x0F) == 0x8) {
 			// fprintf(stderr, "%c\n", '-');
-		} else if ((c & 0x0F)  == 0x09) { //note on
+		} else if ((c & 0x0F) == 0x09) { //note on
 			if (prevNote > c) {
-				fprintf(stderr, "%s\n", "up");
-				contour[count-1] = 'U';
+				// fprintf(stderr, "%s\n", "up");
+				// contour[count-1] = 'U';
+				_contour.push_back('U');
 			} else if (prevNote < c && count > 0) {
-				fprintf(stderr, "%s\n", "down");
-				contour[count-1] = 'D';
+				// fprintf(stderr, "%s\n", "down");
+				// contour[count-1] = 'D';
+				_contour.push_back('D');
 			} else {
-				fprintf(stderr, "%s\n", "same");
-				contour[count-1] = 'S';
+				// fprintf(stderr, "%s\n", "same");
+				// contour[count-1] = 'S';
+				_contour.push_back('S');
 			}
 			count++;
 			prevNote = c;
-			fprintf(stderr, "%c\n", '+');
+
+			// fprintf(stderr, "%c\n", '+');
 		}
+
 		// fprintf(stderr, "%s\n", "something");
 	}
-fprintf(stderr, "%s\n", contour);
+	// fprintf(stderr, "%s\n", contour);
+
+	// printContour();
 //	for (int i = 0; i < trkSz)
+	fclose(midi);
+   	return 0;
 }		
+
+int
+MidiFile::setTrackSize(ulong sz) {
+	_trkSz = sz;
+	return 0;
+}
+
+int
+MidiFile::setBPM(ushort bpm) {
+	_bpm = bpm;
+	return 0;
+}
+
+void
+MidiFile::printContour() {
+	for( std::vector<uchar>::const_iterator i = _contour.begin(); i != _contour.end(); ++i)
+   		fprintf(stderr, "%c", *i);
+   	fprintf(stderr, "%c\n", '\n');
+}
+// readEvent(FILE *f) {
+// 	char c = getNextChar(f);
+// 	uchar evtType = c & 0x0F;
+
+// 	// switch(evtType) {
+// 	// 	case 0x09:
+
+// 	// 		break;
+// 	// 	case 0x08:
+
+// 	// 		break;
+// 	// }
+// }
 
 ushort
 MidiFile::getNextShort(FILE *f) {

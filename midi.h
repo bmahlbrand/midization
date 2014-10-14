@@ -2,7 +2,7 @@
 #include "stdio.h"
 #include "string.h"
 #include <stdlib.h>   
-#include <arpa/inet.h>
+
 typedef unsigned char uchar;
 typedef unsigned short ushort;
 typedef unsigned long ulong;
@@ -14,9 +14,14 @@ public:
 	~MidiFile();
 
 	std::vector<uchar> _data;
+	std::vector<uchar> _contour;
 	const char *_fileName;
 	int _track;
+	int _trkSz;
 	int _time;
+	int _bpm;
+	int setTrackSize(ulong sz);
+	int setBPM(ushort bpm);
 	void setFileName(const char *fileName);
 	FILE *openFile(const char *fileName);
 	int read(const char *fileName);
@@ -27,6 +32,7 @@ public:
 	int isNoteOff(int track, int i);
 	int isMeta(int track, int i);
 	int getTrack(int track, int i);
+	void printContour();
 };
 
 // typedef struct headerChunk {
