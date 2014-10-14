@@ -106,15 +106,32 @@ MidiFile::read(const char *fileName) {
 	// fprintf(stderr, "%ld\n", atol((char*)trkSz));
 	char c = 0;
 	short prevNote = 0;
-
-	while ((c  = getNextChar(midi)) > 0) {
-		if (c == 0x8) {
-			fprintf(stderr, "%c\n", c);
-		} else if (c == 0x9) { //note on
-			fprintf(stderr, "%c\n", c);
+	char contour[9553];
+	memset(contour, '\0', 9553);
+	int count = 0;
+	// while ((c = getNextChar(midi)) != EOF) {
+	for (int i = 0; i < 9553; i++) {
+		c = getNextChar(midi);
+		if ((c & 0x0F) == 0x8) {
+			// fprintf(stderr, "%c\n", '-');
+		} else if ((c & 0x0F)  == 0x09) { //note on
+			if (prevNote > c) {
+				fprintf(stderr, "%s\n", "up");
+				contour[count-1] = 'U';
+			} else if (prevNote < c && count > 0) {
+				fprintf(stderr, "%s\n", "down");
+				contour[count-1] = 'D';
+			} else {
+				fprintf(stderr, "%s\n", "same");
+				contour[count-1] = 'S';
+			}
+			count++;
+			prevNote = c;
+			fprintf(stderr, "%c\n", '+');
 		}
-		fprintf(stderr, "%s\n", "something");
+		// fprintf(stderr, "%s\n", "something");
 	}
+fprintf(stderr, "%s\n", contour);
 //	for (int i = 0; i < trkSz)
 }		
 
