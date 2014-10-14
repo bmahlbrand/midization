@@ -34,7 +34,7 @@ MidiFile::setFileName(const char *fileName) {
 
 int isEvent(uchar event) {
 	uchar e = event & 0x0F;
-	fprintf(stderr, "%c\n", e);
+	// fprintf(stderr, "%c\n", e);
 	switch(e) {
 		case 0x8: //note off
 			fprintf(stderr, "%s\n", "-");
@@ -173,8 +173,8 @@ MidiFile::read(const char *fileName) {
 			}
 			count++;
 			prevNote = c;
-			int tmp = getNextChar(midi);
-			fprintf(stderr, "note: %i\n", tmp);
+			// int tmp = getNextChar(midi);
+			// fprintf(stderr, "note: %i\n", tmp);
 			// fprintf(stderr, "%c\n", '+');
 		}
 	}
