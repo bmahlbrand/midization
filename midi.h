@@ -7,6 +7,13 @@ typedef unsigned char uchar;
 typedef unsigned short ushort;
 typedef unsigned long ulong;
 
+class Note {
+	uchar note;
+	ushort octave;
+	void printNote(Note *n);
+	int setNote(uchar value);
+};
+
 class MidiFile {
 public:
 	MidiFile();
@@ -16,9 +23,7 @@ public:
 	std::vector<uchar> _data;
 	std::vector<uchar> _contour;
 	const char *_fileName;
-	int _track;
 	int _trkSz;
-	int _time;
 	int _bpm;
 	int setTrackSize(ulong sz);
 	int setBPM(ushort bpm);
@@ -28,10 +33,6 @@ public:
 	ulong getNext(FILE *f);
 	char getNextChar(FILE *f);
 	ushort getNextShort(FILE *f);
-	int isNoteOn(int track, int i);
-	int isNoteOff(int track, int i);
-	int isMeta(int track, int i);
-	int getTrack(int track, int i);
 	void printContour();
 };
 

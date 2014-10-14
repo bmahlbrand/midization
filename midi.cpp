@@ -139,13 +139,8 @@ MidiFile::read(const char *fileName) {
 
 			// fprintf(stderr, "%c\n", '+');
 		}
-
-		// fprintf(stderr, "%s\n", "something");
 	}
-	// fprintf(stderr, "%s\n", contour);
 
-	// printContour();
-//	for (int i = 0; i < trkSz)
 	fclose(midi);
    	return 0;
 }		
@@ -201,23 +196,6 @@ MidiFile::getNextChar(FILE *f) {
 	return fgetc(f);
 }
 
-int
-MidiFile::isNoteOn(int track, int i) {
+Note::printNote(Note *n) {
 
 }
-
-int
-MidiFile::isNoteOff(int track, int i) {
-
-}
-
-int
-MidiFile::isMeta(int track, int i) {
-
-}
-
-int
-MidiFile::getTrack(int track, int i) {
-
-}
-
