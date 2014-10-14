@@ -10,7 +10,7 @@ typedef unsigned long ulong;
 class Note {
 	uchar note;
 	ushort octave;
-	void printNote(Note *n);
+	void printNote();
 	int setNote(uchar value);
 };
 

@@ -32,6 +32,40 @@ MidiFile::setFileName(const char *fileName) {
 	_fileName = strdup(fileName);
 }
 
+int isEvent(uchar event) {
+	uchar e = event & 0x0F;
+	fprintf(stderr, "%c\n", e);
+	switch(e) {
+		case 0x8: //note off
+			fprintf(stderr, "%s\n", "-");
+			break;
+		case 0x9: //note on
+			fprintf(stderr, "%s\n", "+");
+			break;
+		case 0xA: //note aftertouch
+			fprintf(stderr, "%s\n", "0xA");
+			break;
+		case 0xB: //controller
+			fprintf(stderr, "%s\n", "0xB");
+			break;
+		case 0xC: //program change
+			fprintf(stderr, "%s\n", "0xC");
+			break;
+		case 0xD: //channel aftertouch
+			fprintf(stderr, "%s\n", "0xD");
+			break;
+		case 0xE: //pitch bend
+			fprintf(stderr, "%s\n", "0xE");
+			break;
+		case 0xFF: //metaEvent
+			fprintf(stderr, "%s\n", "0xFF");
+			break;
+		default:
+			fprintf(stderr, "%s\n", "ERROR: bad event");
+			break;
+	}
+}
+
 int
 MidiFile::read(const char *fileName) {
 	if (fileName != NULL)
@@ -118,9 +152,10 @@ MidiFile::read(const char *fileName) {
 	// while ((c = getNextChar(midi)) != EOF) {
 	for (int i = 0; i < size; i++) {
 		c = getNextChar(midi);
+		isEvent(c);
 		if ((c & 0x0F) == 0x8) {
 			// fprintf(stderr, "%c\n", '-');
-		} else if ((c & 0x0F) == 0x09) { //note on
+		} else if ((c & 0x0F) == 0x9) { //note on
 			if (prevNote > c) {
 				// fprintf(stderr, "%s\n", "up");
 				// contour[count-1] = 'U';
@@ -132,15 +167,18 @@ MidiFile::read(const char *fileName) {
 			} else {
 				// fprintf(stderr, "%s\n", "same");
 				// contour[count-1] = 'S';
+
 				_contour.push_back('S');
+
 			}
 			count++;
 			prevNote = c;
-
+			int tmp = getNextChar(midi);
+			fprintf(stderr, "note: %i\n", tmp);
 			// fprintf(stderr, "%c\n", '+');
 		}
 	}
-
+	fprintf(stderr, "%i\n", count);
 	fclose(midi);
    	return 0;
 }		
@@ -196,6 +234,7 @@ MidiFile::getNextChar(FILE *f) {
 	return fgetc(f);
 }
 
-Note::printNote(Note *n) {
+void
+Note::printNote() {
 
 }
