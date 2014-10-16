@@ -74,7 +74,7 @@ getAsShort(uchar *bytes) {
 }
 
 int
-MidiFile::setTrackSize(ulong sz) {
+MidiFile::setTrackSize() {
 	_trkSz = sz;
 	return 0;
 }
@@ -100,6 +100,27 @@ MidiFile::setBPM() {
 	return 0;
 }
 
+ulong
+MidiFile::getHeaderSize() {
+	//read header size, should be 6
+	uchar buffer[4];
+	for (int i = 0; i < 4; i++) {
+		buffer[i] = getNextChar(_target);
+	}	
+
+	return getAsLong(buffer);
+}
+
+int 
+MidiFile::setHeaderSize() {
+	_fileHeader._size = getHeaderSize();
+
+	fprintf(stderr, "size %lu\n", _fileHeader._size);
+	if (_fileHeader._size != 6)
+		fprintf(stderr, "%s %lu\n", "Error, bad size", _fileHeader._size);
+
+	return 0;
+}
 
 int 
 MidiFile::readFileHeader() {
@@ -115,15 +136,9 @@ MidiFile::readFileHeader() {
 	if (strcmp((char*)_fileHeader._hdr, "MThd"))
 		fprintf(stderr, "%s\n", "Error, bad header");
 
-	//read header size, should be 6
-	uchar buffer[4];
-	for (int i = 0; i < 4; i++) {
-		buffer[i] = getNextChar(_target);
-	}	
-	_fileHeader._size = getAsLong(buffer);
-	fprintf(stderr, "size %lu\n", _fileHeader._size);
-	if (_fileHeader._size != 6)
-		fprintf(stderr, "%s %lu\n", "Error, bad size", _fileHeader._size);
+	setHeaderSize();
+
+	return 0;
 }
 
 ushort 

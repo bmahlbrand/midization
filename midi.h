@@ -9,8 +9,8 @@ typedef unsigned long ulong;
 
 typedef struct fileHeader {
 	unsigned char _hdr[4];
-	ushort _type;
 	ulong _size;
+	ushort _type;
 	ushort _tracks;
 	ushort _bpm;
 } FileHeader;
@@ -45,6 +45,10 @@ public:
 	void setFileName(const char *fileName);
 	FILE *openFile(const char *fileName);
 	int readFileHeader();
+
+	ulong getHeaderSize();
+	int setHeaderSize();
+	
 	int readTrack();
 	ushort getTrackCount();
 	int setTrackCount();
@@ -64,10 +68,3 @@ public:
 // 	unsigned char[2] _n;
 // 	unsigned char[2] _division;
 // } HeaderChunk;
-
-
-
-// typedef struct midiFile {
-// 	HeaderChunk *_header;
-
-// } MidiFile;
