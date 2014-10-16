@@ -4,11 +4,15 @@
 MidiFile::MidiFile() {
 	_fileName = NULL;
 	_trkSz = 0;
+	_curTrack = 0;
+	_target = NULL;
 }
 
 MidiFile::MidiFile(const char *fileName) {
 	_fileName = NULL;
 	_trkSz = 0;
+	_curTrack = 0;
+	_target = NULL;
 }
 
 MidiFile::~MidiFile() {
@@ -72,19 +76,20 @@ MidiFile::setFileName(const char *fileName) {
 // }
 
 int 
-isEvent(uchar event) {
+isEvent(uchar event, int track) {
 	uchar e = event & 0xF0;
 	uchar channel = event & 0x0F;
 	// channel = channel >> 4;
 	e = e >> 4;
-	fprintf(stderr, "%x %x %x\n", e, channel, event);
+	// fprintf(stderr, "%x %x %x\n", e, channel, event);
 	// switch(e) {
-		if (e == 8 && channel == 0) {
+		if (e == 8 && channel == track) {
 			fprintf(stderr, "%s\n", "-");
-		} else if (e == 9 && channel == 0){
+		} else if (e == 9 && channel == track){
 			fprintf(stderr, "%s\n", "+");
 		} else if (event == 0x2f) {
 			fprintf(stderr, "%s\n", "eot");
+			return -1;
 		}
 		// case 0xA: //note aftertouch
 		// 	fprintf(stderr, "%s\n", "0xA");
@@ -232,7 +237,7 @@ MidiFile::readTrack() {
 	}	trkHdr[4] = '\0';
 
 	fprintf(stderr, "%s\n", trkHdr);
-
+	assert(strcmp((char*)trkHdr, "MTrk") == 0);
 	ulong size = 0;
 	for (int i = 0; i < 4; i++) {
 		trkSz[i] = getNextChar(_target);
@@ -248,9 +253,9 @@ MidiFile::readTrack() {
 
 	int count = 0;
 	// while ((c = getNextChar(midi)) != EOF) {
-	for (int i = 0; i < size; i++) {
+	for (int i = 0; ; i++) {
 		c = getNextChar(_target);
-		isEvent(c);
+		int tmp = isEvent(c, _curTrack);
 		if ((c & 0x0F) == 0x8) {
 			// fprintf(stderr, "%c\n", '-');
 		} else if ((c & 0x0F) == 0x9) { //note on
@@ -267,6 +272,8 @@ MidiFile::readTrack() {
 			// fprintf(stderr, "note: %i\n", tmp);
 			// fprintf(stderr, "%c\n", '+');
 		}
+
+		if (tmp) break;
 	}
 	fprintf(stderr, "note on events: %i\n", count);
 	return 0;
@@ -287,8 +294,11 @@ MidiFile::read(const char *fileName) {
 	setType();
 	setTrackCount();
 	setBPM();
-	for (int i = 0; i < _fileHeader._tracks; i++)
+	for (int i = 0; i < _fileHeader._tracks; i++) {
+		_curTrack = i;
 		readTrack();
+		printContour();
+	}
 
 	fclose(_target);
    	return 0;

@@ -3,6 +3,7 @@
 #include "string.h"
 #include <stdlib.h>   
 #include <assert.h>
+
 typedef unsigned char uchar;
 typedef unsigned short ushort;
 typedef unsigned long ulong;
@@ -17,7 +18,7 @@ typedef struct fileHeader {
 
  typedef struct tkChunk {
  	unsigned char _MTrk[4];
- 	unsigned char _len[4] ;
+ 	unsigned char _len[4];
  	unsigned char *_event;
  } TkChunk;
 
@@ -33,7 +34,7 @@ public:
 	MidiFile();
 	MidiFile(const char *fileName);
 	~MidiFile();
-
+	int _curTrack;
 	FILE *_target;
 	FileHeader _fileHeader;
 	std::vector<uchar> _data;
