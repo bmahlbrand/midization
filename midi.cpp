@@ -66,60 +66,64 @@ int isEvent(uchar event) {
 	}
 }
 
+
+ulong getAsLong(uchar *bytes) {
+	return (bytes[0] << 24) | (bytes[1] << 16) | (bytes[2] << 8) | bytes[3];
+}
+
+ushort getAsShort(uchar *bytes) {
+	return bytes[0] << 8 | bytes[1];
+}
+
+int MidiFile::readFileHeader() {
+	//read header
+	for (int i = 0; i < 4; i++) {
+		_fileHeader._hdr[i] = getNextChar(_target);
+	}	_fileHeader._hdr[4] = '\0';
+
+	// #ifdef DEBUG 
+	fprintf(stderr, "%s\n", _fileHeader._hdr);
+	// #endif
+
+	if (strcmp((char*)_fileHeader._hdr, "MThd"))
+		fprintf(stderr, "%s\n", "Error, bad header");
+
+	//read header size, should be 6
+	uchar buffer[4];
+	for (int i = 0; i < 4; i++) {
+		buffer[i] = getNextChar(_target);
+	}	
+	_fileHeader._size = getAsLong(buffer);
+	fprintf(stderr, "size %lu\n", _fileHeader._size);
+	if (_fileHeader._size != 6)
+		fprintf(stderr, "%s %lu\n", "Error, bad size", _fileHeader._size);
+}
+
+
 int
 MidiFile::read(const char *fileName) {
 	if (fileName != NULL)
 		setFileName(fileName);
-	FILE *midi = openFile(fileName);
+	_target = openFile(fileName);
 	
-	if (!midi)
+	if (!_target)
 		return 0;
 
 	ulong hdrSz;
 	ushort type;
 	uchar dataByte;
-	uchar hdr[4];
 
-	for (int i = 0; i < 4; i++) {
-		hdr[i] = getNextChar(midi);
-	}
+	readFileHeader();
+	type = getNextShort(_target);
 
-	// #ifdef DEBUG 
-	fprintf(stderr, "%s\n", hdr);
-	// #endif
-
-	if (strcmp((char*)hdr, "MThd"))
-		fprintf(stderr, "%s\n", "Error, bad header");
-
-	// uchar buffer[4];
-	// for (int i = 0; i < 4; i++) {
-	// 	buffer[4] = getNextChar(midi);
-	// }
-
-	// hdrSz = getNext(midi);
-
-
-	uchar buffer[4];
-	for (int i = 0; i < 4; i++) {
-
-		buffer[i] = getNextChar(midi);
-		fprintf(stderr, "%x\n", buffer[i]);
-	}	
-
-	hdrSz = buffer[3];
-	if (hdrSz != 6)
-		fprintf(stderr, "%s %lu\n", "Error, bad size", hdrSz);
-
-	type = getNextShort(midi);
-
-	
 	fprintf(stderr, "type: %u\n", type);
-	int tracks = getNextShort(midi);
+	int tracks = getNextShort(_target);
 	fprintf(stderr, "tracks: %i\n", tracks);
-	
+	uchar buffer[4];
 	memset(buffer, '\0', 4);
+	
 	for (int i = 0; i < 2; i++) {
-		buffer[i] = getNextChar(midi);
+		buffer[i] = getNextChar(_target);
 		fprintf(stderr, "bpm %x\n", buffer[i]);
 	}
 	
@@ -129,21 +133,22 @@ MidiFile::read(const char *fileName) {
 	uchar trkHdr[4];
 
 	for (int i = 0; i < 4; i++) {
-		trkHdr[i] = getNextChar(midi);
-	}
+		trkHdr[i] = getNextChar(_target);
+	}	trkHdr[4] = '\0';
 
 	fprintf(stderr, "%s\n", trkHdr);
 
-	char trkSz[4];
+	uchar trkSz[4];
 	ulong size = 0;
 	for (int i = 0; i < 4; i++) {
-		trkSz[i] = getNextChar(midi);
-		fprintf(stderr, "%x\n", trkSz[i]);
-		size += trkSz[i];
+		trkSz[i] = getNextChar(_target);
+		// fprintf(stderr, "%x\n", trkSz[i]);
+		// size += trkSz[i];
 	}
 
-	size = (trkSz[0] << 24) | (trkSz[1] << 16) | (trkSz[2] << 8) | trkSz[3]; //from char hex array to ulong
-	fprintf(stderr, "%lu\n", size);
+	// size = (trkSz[0] << 24) | (trkSz[1] << 16) | (trkSz[2] << 8) | trkSz[3]; //from char hex array to ulong
+	size = getAsLong(trkSz);
+	fprintf(stderr, "(alleged) track length: %lu\n", size);
 	// fprintf(stderr, "%ld\n", atol((char*)trkSz));
 	char c = 0;
 	short prevNote = 0;
@@ -151,8 +156,8 @@ MidiFile::read(const char *fileName) {
 	int count = 0;
 	// while ((c = getNextChar(midi)) != EOF) {
 	for (int i = 0; i < size; i++) {
-		c = getNextChar(midi);
-		isEvent(c);
+		c = getNextChar(_target);
+		// isEvent(c);
 		if ((c & 0x0F) == 0x8) {
 			// fprintf(stderr, "%c\n", '-');
 		} else if ((c & 0x0F) == 0x9) { //note on
@@ -178,8 +183,8 @@ MidiFile::read(const char *fileName) {
 			// fprintf(stderr, "%c\n", '+');
 		}
 	}
-	fprintf(stderr, "%i\n", count);
-	fclose(midi);
+	fprintf(stderr, "note on events: %i\n", count);
+	fclose(_target);
    	return 0;
 }		
 
@@ -194,6 +199,7 @@ MidiFile::setBPM(ushort bpm) {
 	_bpm = bpm;
 	return 0;
 }
+
 
 void
 MidiFile::printContour() {
