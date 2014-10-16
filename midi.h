@@ -2,7 +2,7 @@
 #include "stdio.h"
 #include "string.h"
 #include <stdlib.h>   
-
+#include <assert.h>
 typedef unsigned char uchar;
 typedef unsigned short ushort;
 typedef unsigned long ulong;
@@ -33,13 +33,15 @@ public:
 	MidiFile();
 	MidiFile(const char *fileName);
 	~MidiFile();
+
 	FILE *_target;
 	FileHeader _fileHeader;
 	std::vector<uchar> _data;
 	std::vector<uchar> _contour;
 	const char *_fileName;
 	int _trkSz;
-	int setTrackSize(ulong sz);
+	int setTrackSize();
+	int getTrackSize();
 	ushort getBPM();
 	int setBPM();
 	void setFileName(const char *fileName);
@@ -54,6 +56,8 @@ public:
 	int setTrackCount();
 	ushort getType();
 	int setType();
+
+
 	int read(const char *fileName);
 	ulong getNext(FILE *f);
 	char getNextChar(FILE *f);

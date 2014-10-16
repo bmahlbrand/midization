@@ -21,6 +21,7 @@ MidiFile::openFile(const char *fileName) {
 
 	if (file)
 		return file;
+
 	return NULL;
 }
 
@@ -29,40 +30,90 @@ MidiFile::setFileName(const char *fileName) {
 	_fileName = strdup(fileName);
 }
 
-int isEvent(uchar event) {
-	uchar e = event & 0x0F;
-	// fprintf(stderr, "%c\n", e);
-	switch(e) {
-		case 0x8: //note off
-			fprintf(stderr, "%s\n", "-");
-			break;
-		case 0x9: //note on
-			fprintf(stderr, "%s\n", "+");
-			break;
-		case 0xA: //note aftertouch
-			fprintf(stderr, "%s\n", "0xA");
-			break;
-		case 0xB: //controller
-			fprintf(stderr, "%s\n", "0xB");
-			break;
-		case 0xC: //program change
-			fprintf(stderr, "%s\n", "0xC");
-			break;
-		case 0xD: //channel aftertouch
-			fprintf(stderr, "%s\n", "0xD");
-			break;
-		case 0xE: //pitch bend
-			fprintf(stderr, "%s\n", "0xE");
-			break;
-		case 0xFF: //metaEvent
-			fprintf(stderr, "%s\n", "0xFF");
-			break;
-		default:
-			fprintf(stderr, "%s\n", "ERROR: bad event");
-			break;
-	}
-}
+// int 
+// isEvent(uchar event) {
+// 	uchar e = event & 0x0F;
+// 	uchar f = event & 0xF0;
+// 	// fprintf(stderr, "%x %x\n", e, event);
+// 	switch(e) {
+// 		case 0x8: //note off
+// 			fprintf(stderr, "%s\n", "-");
+// 			break;
+// 		case 0x9: //note on
+// 			fprintf(stderr, "%s\n", "+");
+// 			break;
+// 		case 0xA: //note aftertouch
+// 			fprintf(stderr, "%s\n", "0xA");
+// 			break;
+// 		case 0xB: //controller
+// 			fprintf(stderr, "%s\n", "0xB");
+// 			break;
+// 		case 0xC: //program change
+// 			fprintf(stderr, "%s\n", "0xC");
+// 			break;
+// 		case 0xD: //channel aftertouch
+// 			fprintf(stderr, "%s\n", "0xD");
+// 			break;
+// 		case 0xE: //pitch bend
+// 			fprintf(stderr, "%s\n", "0xE");
+// 			break;
+// 		case 0xff: //metaEvent
+// 			fprintf(stderr, "%s\n", "0xff");
+// 			break;
+// 		case 0x2f: //eot
+// 			fprintf(stderr, "%s\n", "0x2f");
+// 			break;
+// 		default:
+// 			// fprintf(stderr, "%s\n", "ERROR: bad event");
+// 			break;
+// 	}
 
+// 	return 0;
+// }
+
+int 
+isEvent(uchar event) {
+	uchar e = event & 0xF0;
+	uchar channel = event & 0x0F;
+	// channel = channel >> 4;
+	e = e >> 4;
+	fprintf(stderr, "%x %x %x\n", e, channel, event);
+	// switch(e) {
+		if (e == 8 && channel == 0) {
+			fprintf(stderr, "%s\n", "-");
+		} else if (e == 9 && channel == 0){
+			fprintf(stderr, "%s\n", "+");
+		} else if (event == 0x2f) {
+			fprintf(stderr, "%s\n", "eot");
+		}
+		// case 0xA: //note aftertouch
+		// 	fprintf(stderr, "%s\n", "0xA");
+		// 	break;
+		// case 0xB: //controller
+		// 	fprintf(stderr, "%s\n", "0xB");
+		// 	break;
+		// case 0xC: //program change
+		// 	fprintf(stderr, "%s\n", "0xC");
+		// 	break;
+		// case 0xD: //channel aftertouch
+		// 	fprintf(stderr, "%s\n", "0xD");
+		// 	break;
+		// case 0xE: //pitch bend
+		// 	fprintf(stderr, "%s\n", "0xE");
+		// 	break;
+		// case 0xff: //metaEvent
+		// 	fprintf(stderr, "%s\n", "0xff");
+		// 	break;
+		// case 0x2f: //eot
+		// 	fprintf(stderr, "%s\n", "0x2f");
+		// 	break;
+		// default:
+		// 	// fprintf(stderr, "%s\n", "ERROR: bad event");
+		// 	break;
+	// }
+
+	return 0;
+}
 ulong 
 getAsLong(uchar *bytes) {
 	return (bytes[0] << 24) | (bytes[1] << 16) | (bytes[2] << 8) | bytes[3];
@@ -74,15 +125,18 @@ getAsShort(uchar *bytes) {
 }
 
 int
+MidiFile::getTrackSize() {
+	// return getAsShort();
+}
+int
 MidiFile::setTrackSize() {
-	_trkSz = sz;
+	// _trkSz = sz;
 	return 0;
 }
 
 ushort
 MidiFile::getBPM() {
-	uchar buffer[4];
-	memset(buffer, '\0', 4);
+	uchar buffer[2];
 	for (int i = 0; i < 2; i++) {
 		buffer[i] = getNextChar(_target);
 	}
@@ -119,6 +173,7 @@ MidiFile::setHeaderSize() {
 	if (_fileHeader._size != 6)
 		fprintf(stderr, "%s %lu\n", "Error, bad size", _fileHeader._size);
 
+	assert(_fileHeader._size == 6);
 	return 0;
 }
 
@@ -167,8 +222,10 @@ MidiFile::setType() {
 
 int 
 MidiFile::readTrack() {
+	enum {START, META, ENDING} state;
+	
 	uchar trkHdr[4];
-	setBPM();
+	
 	uchar trkSz[4];
 	for (int i = 0; i < 4; i++) {
 		trkHdr[i] = getNextChar(_target);
@@ -186,14 +243,14 @@ MidiFile::readTrack() {
 	size = getAsLong(trkSz);
 	fprintf(stderr, "(alleged) track length: %lu\n", size);
 	// fprintf(stderr, "%ld\n", atol((char*)trkSz));
-	char c = 0;
+	uchar c = 0;
 	short prevNote = 0;
 
 	int count = 0;
 	// while ((c = getNextChar(midi)) != EOF) {
 	for (int i = 0; i < size; i++) {
 		c = getNextChar(_target);
-		// isEvent(c);
+		isEvent(c);
 		if ((c & 0x0F) == 0x8) {
 			// fprintf(stderr, "%c\n", '-');
 		} else if ((c & 0x0F) == 0x9) { //note on
@@ -224,12 +281,14 @@ MidiFile::read(const char *fileName) {
 	_target = openFile(fileName);
 	
 	if (!_target)
-		return 0;
+		return 1;
 
 	readFileHeader();
 	setType();
 	setTrackCount();
-	readTrack();
+	setBPM();
+	for (int i = 0; i < _fileHeader._tracks; i++)
+		readTrack();
 
 	fclose(_target);
    	return 0;
