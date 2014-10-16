@@ -63,11 +63,13 @@ int isEvent(uchar event) {
 	}
 }
 
-ulong getAsLong(uchar *bytes) {
+ulong 
+getAsLong(uchar *bytes) {
 	return (bytes[0] << 24) | (bytes[1] << 16) | (bytes[2] << 8) | bytes[3];
 }
 
-ushort getAsShort(uchar *bytes) {
+ushort 
+getAsShort(uchar *bytes) {
 	return bytes[0] << 8 | bytes[1];
 }
 
@@ -77,8 +79,8 @@ MidiFile::setTrackSize(ulong sz) {
 	return 0;
 }
 
-int
-MidiFile::readBPM() {
+ushort
+MidiFile::getBPM() {
 	uchar buffer[4];
 	memset(buffer, '\0', 4);
 	for (int i = 0; i < 2; i++) {
@@ -87,12 +89,13 @@ MidiFile::readBPM() {
 	
 	// if (buffer[0] == 0)
 	// 	_bpm = buffer[1];
-	setBPM(getAsShort(buffer));
+	
+	return getAsShort(buffer);
 }
 
 int
-MidiFile::setBPM(ushort bpm) {
-	_fileHeader._bpm = bpm;
+MidiFile::setBPM() {
+	_fileHeader._bpm = getBPM();
 	fprintf(stderr, "BPM: %d\n", _fileHeader._bpm);
 	return 0;
 }
@@ -123,35 +126,34 @@ MidiFile::readFileHeader() {
 		fprintf(stderr, "%s %lu\n", "Error, bad size", _fileHeader._size);
 }
 
-int 
-MidiFile::readTrack() {
-
+ushort 
+MidiFile::getTrackCount() {
+	return getNextShort(_target);
 }
 
-int
-MidiFile::read(const char *fileName) {
-	if (fileName != NULL)
-		setFileName(fileName);
-	_target = openFile(fileName);
-	
-	if (!_target)
-		return 0;
+int 
+MidiFile::setTrackCount() {
+	_fileHeader._tracks = getTrackCount();
+	fprintf(stderr, "tracks: %i\n", _fileHeader._tracks);
+	return 0;
+}
 
-	ulong hdrSz;
-	ushort type;
-	uchar dataByte;
+ushort 
+MidiFile::getType() {
+	return getNextShort(_target);;
+}
 
-	readFileHeader();
-	type = getNextShort(_target);
+int 
+MidiFile::setType() {
+	_fileHeader._type = getType();
+	fprintf(stderr, "type: %u\n", _fileHeader._type);
+	return 0;
+}
 
-	fprintf(stderr, "type: %u\n", type);
-	int tracks = getNextShort(_target);
-	fprintf(stderr, "tracks: %i\n", tracks);
-	uchar buffer[4];
-	memset(buffer, '\0', 4);
-	
+int 
+MidiFile::readTrack() {
 	uchar trkHdr[4];
-	readBPM();
+	setBPM();
 	uchar trkSz[4];
 	for (int i = 0; i < 4; i++) {
 		trkHdr[i] = getNextChar(_target);
@@ -186,7 +188,6 @@ MidiFile::read(const char *fileName) {
 				_contour.push_back('D');
 			} else {
 				_contour.push_back('R');
-
 			}
 			count++;
 			prevNote = c;
@@ -196,6 +197,25 @@ MidiFile::read(const char *fileName) {
 		}
 	}
 	fprintf(stderr, "note on events: %i\n", count);
+	return 0;
+}
+
+int
+MidiFile::read(const char *fileName) {
+	if (fileName == NULL)
+		return 1;
+	
+	setFileName(fileName);
+	_target = openFile(fileName);
+	
+	if (!_target)
+		return 0;
+
+	readFileHeader();
+	setType();
+	setTrackCount();
+	readTrack();
+
 	fclose(_target);
    	return 0;
 }		

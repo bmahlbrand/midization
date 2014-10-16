@@ -40,12 +40,16 @@ public:
 	const char *_fileName;
 	int _trkSz;
 	int setTrackSize(ulong sz);
-	int readBPM();
-	int setBPM(ushort bpm);
+	ushort getBPM();
+	int setBPM();
 	void setFileName(const char *fileName);
 	FILE *openFile(const char *fileName);
 	int readFileHeader();
 	int readTrack();
+	ushort getTrackCount();
+	int setTrackCount();
+	ushort getType();
+	int setType();
 	int read(const char *fileName);
 	ulong getNext(FILE *f);
 	char getNextChar(FILE *f);
