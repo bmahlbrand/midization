@@ -39,12 +39,13 @@ public:
 	std::vector<uchar> _contour;
 	const char *_fileName;
 	int _trkSz;
-	int _bpm;
 	int setTrackSize(ulong sz);
+	int readBPM();
 	int setBPM(ushort bpm);
 	void setFileName(const char *fileName);
 	FILE *openFile(const char *fileName);
 	int readFileHeader();
+	int readTrack();
 	int read(const char *fileName);
 	ulong getNext(FILE *f);
 	char getNextChar(FILE *f);
